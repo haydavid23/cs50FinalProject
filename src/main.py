@@ -9,6 +9,8 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db
+from models import User
+
 #from models import Person
 
 app = Flask(__name__)
@@ -34,9 +36,13 @@ def sitemap():
 @app.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
 
+   
+
     response_body = {
         "hello": "world"
     }
+
+    
 
     return jsonify(response_body), 200
 
