@@ -54,12 +54,12 @@ class StudentsGrades(db.Model):
     studentId = db.Column(db.Integer,  nullable=False)
     subject = db.Column(db.String(120), nullable=False)
     gradeLevel = db.Column(db.String(80), unique=False, nullable=False)
-    semester = db.Column(db.String(80), nullable=False)
+    semesterId = db.Column(db.Integer, nullable=False)
     grade = db.Column(db.String(80), unique=False, nullable=False)
 
-    __table_args__ = (
-        db.UniqueConstraint('studentId', 'subject','semester'),
-    )
+    # __table_args__ = (
+    #     db.UniqueConstraint('studentId', 'subject','semesterId'),
+    # )
 
     def __repr__(self):
         return '<StudentsGrades %r>' % self.grade
@@ -83,6 +83,7 @@ class SubmitedAssigments(db.Model):
     subject = db.Column(db.String(100), unique=False, nullable=False)
     assigmentName = db.Column(db.String(100), unique=False, nullable=False)
     grade = db.Column(db.Float, unique=False, nullable=True)
+    semesterId = db.Column(db.Integer, unique=False, nullable=True)
 
     def __repr__(self):
         return '<SubmitedAssigments %r>' % self.assigmentName
@@ -98,6 +99,25 @@ class SubmitedAssigments(db.Model):
             # do not serialize the password, its a security breach
         }
 
+class Semester(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    quarter= db.Column(db.String(20), unique=False, nullable=False)
+    schoolYear = db.Column(db.String(20), unique=False, nullable=False)
+
+
+    def __repr__(self):
+        return '<Semester %r>' % self.schoolYear
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "quarter": self.quarter,
+            "schoolYear": self.schoolYear,
+
+
+            # do not serialize the password, its a security breach
+        }
+
 
 class AssignedAssigments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -105,6 +125,7 @@ class AssignedAssigments(db.Model):
     subject = db.Column(db.String(10), unique=False, nullable=True)
     assigmentFile = db.Column(db.LargeBinary, unique=False, nullable=True)
     dueDate = db.Column(db.DateTime, unique=False, nullable=True)
+    semesterId = db.Column(db.Integer, unique=False, nullable=True)
 
     def __repr__(self):
         return '<AssignedAssigments %r>' % self.name
@@ -113,7 +134,8 @@ class AssignedAssigments(db.Model):
         return {
             "name": self.id,
             "subject": self.subject,
-            "dueDate": self.dueDate
+            "dueDate": self.dueDate,
+            "semesterId": self.semesterId
 
            
         }
