@@ -10,10 +10,10 @@ class Teacher(db.Model):
     gradeLevel = db.Column(db.String(80), unique=False, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
-    TeacherId = db.Column(db.String(80), unique=True, nullable=False)
+
     
     def __repr__(self):
-        return '<Student %r>' % self.username
+        return '<Teacher %r>' % self.username
 
     def serialize(self):
         return {
@@ -22,10 +22,9 @@ class Teacher(db.Model):
             "name": self.lastName,
             "name": self.gradeLevel,
             "name": self.username,
-            "name": self.teacherId,
+            "name": self.teacherId
             # do not serialize the password, its a security breach
         }
-
 
 class Students(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,10 +33,9 @@ class Students(db.Model):
     gradeLevel = db.Column(db.String(80), unique=False, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
-    studentId = db.Column(db.String(80), unique=True, nullable=False)
     
     def __repr__(self):
-        return '<Student %r>' % self.username
+        return '<Students %r>' % self.username
 
     def serialize(self):
         return {
@@ -45,60 +43,93 @@ class Students(db.Model):
             "name": self.name,
             "name": self.lastName,
             "name": self.gradeLevel,
-            "name": self.username,
-            "name": self.studentId,
+            "name": self.username
+ 
             # do not serialize the password, its a security breach
         }
 
-
-class Assigments(db.Model):
+class StudentsGrades(db.Model):
+  
     id = db.Column(db.Integer, primary_key=True)
-    studentId = db.Column(db.Integer, nullable=False)
-    teacherId = db.Column(db.Integer, nullable=False)
-    subject = db.Column(db.String(25), nullable=False)
-    assigmentName = db.Column(db.String(100), unique=True, nullable=False)
-    classfication = db.Column(db.String(50), unique=False, nullable=False)
-    dueDate = db.Column(db.DateTime, unique=False, nullable=False)
-    grade = db.Column(db.String(10), unique=False, nullable=False)
-    note = db.Column(db.String(50), unique=False, nullable=True)
-    
+    studentId = db.Column(db.Integer,  nullable=False)
+    subject = db.Column(db.String(120), nullable=False)
+    gradeLevel = db.Column(db.String(80), unique=False, nullable=False)
+    semester = db.Column(db.String(80), nullable=False)
+    grade = db.Column(db.String(80), unique=False, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('studentId', 'subject','semester'),
+    )
 
     def __repr__(self):
-        return '<Assigments %r>' % self.subject
+        return '<StudentsGrades %r>' % self.grade
 
     def serialize(self):
         return {
             "id": self.id,
-            "studentId": self.studentId,
-            "studentId": self.teacherId,
-            "subject": self.subject,
-            "assigmentName": self.assigmentName,
-            "dueDate": self.dueDate,
-            "classification": self.classification,
-            "grade": self.grade,
-            "note": self.note,
+            "name": self.studentId,
+            "name": self.subject,
+            "name": self.gradeLevel,
+            "name": self.grade
+ 
             # do not serialize the password, its a security breach
+        }
+
+
+
+class SubmitedAssigments(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    studentId = db.Column(db.Integer, unique=False, nullable=False)
+    subject = db.Column(db.String(100), unique=False, nullable=False)
+    assigmentName = db.Column(db.String(100), unique=False, nullable=False)
+    grade = db.Column(db.Float, unique=False, nullable=True)
+
+    def __repr__(self):
+        return '<SubmitedAssigments %r>' % self.assigmentName
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "subject": self.subject,
+            "studentId": self.studentId,
+            "assigmentName": self.assigmentName,
+            "grade": self.grade
+
+            # do not serialize the password, its a security breach
+        }
+
+
+class AssignedAssigments(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), unique=True, nullable=True)
+    subject = db.Column(db.String(10), unique=False, nullable=True)
+    assigmentFile = db.Column(db.LargeBinary, unique=False, nullable=True)
+    dueDate = db.Column(db.DateTime, unique=False, nullable=True)
+
+    def __repr__(self):
+        return '<AssignedAssigments %r>' % self.name
+
+    def serialize(self):
+        return {
+            "name": self.id,
+            "subject": self.subject,
+            "dueDate": self.dueDate
+
+           
         }
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=False, nullable=False)
+    userName = db.Column(db.String(120), unique=False, nullable=False)
     lastName = db.Column(db.String(120), unique=False, nullable=False)
-    gradeLevel = db.Column(db.String(80), unique=False, nullable=False)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(80), unique=False, nullable=False)
-    studentId = db.Column(db.String(80), unique=True, nullable=False)
-    
+ 
     def __repr__(self):
-        return '<Student %r>' % self.username
+        return '<User %r>' % self.user
 
     def serialize(self):
         return {
             "id": self.id,
-            "name": self.name,
-            "name": self.lastName,
-            "name": self.gradeLevel,
-            "name": self.username,
-            "name": self.studentId,
+            "name": self.name
             # do not serialize the password, its a security breach
         }

@@ -9,7 +9,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db
-from models import User
+from models import User, Teacher, Students, StudentsGrades, SubmitedAssigments
 
 #from models import Person
 
@@ -35,16 +35,36 @@ def sitemap():
 
 @app.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
+    studentsArray = Students.query.all()
+    assigments = SubmitedAssigments.query.all()
 
-   
+    studentAssigments = []
+    student = {}
 
-    response_body = {
-        "hello": "world"
-    }
+    for students in studentsArray:
+        student['Student_Name']=students.name
+        for work in assigments:
+             if work.studentId == students.id:
+                 student[work.assigmentName] = work.grade
+        studentAssigments.append(student)
+        print(studentAssigments)
+        student = {}
+    print(studentAssigments)
 
-    
+    response_body = {"hello":"hello"}
 
-    return jsonify(response_body), 200
+    return jsonify(studentAssigments), 200
+
+
+@app.route('/add', methods=['POST', 'GET'])
+def handle_add():
+
+    test = StudentsGrades(studentId=1, subject="math", gradeLevel="9", semester="q2", grade="A")
+    db.session.add(test)
+    db.session.commit()
+
+
+    return 'test', 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
