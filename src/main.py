@@ -76,6 +76,7 @@ def handle_assignmentsBySubject():
 
     return jsonify(assignmentNames), 200
 
+@app.route('/getAllAssignmentsList', methods=['POST', 'GET'])
 def handle_getAllAssignmentsList():
 
     arr = []
