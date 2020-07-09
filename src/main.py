@@ -59,7 +59,7 @@ def handle_getGradeBookGradeBysubject():
     return jsonify(studentAssignments), 200
 
 
-@app.route('/getAssignmentsBySubject', methods=['POST', 'GET'])
+@app.route('/getAssignedAssignmentsBySubject', methods=['POST', 'GET'])
 def handle_assignmentsBySubject():
 
     subjectRequested = request.get_json()
@@ -76,8 +76,8 @@ def handle_assignmentsBySubject():
 
     return jsonify(assignmentNames), 200
 
-@app.route('/getAllAssignmentsList', methods=['POST', 'GET'])
-def handle_getAllAssignmentsList():
+@app.route('/getAllAssignedAssignments', methods=['POST', 'GET'])
+def handle_getAllAssignments():
 
     arr = []
 
@@ -89,16 +89,8 @@ def handle_getAllAssignmentsList():
 
 
 
-@app.route('/edit', methods=['POST', 'GET'])
-def handle_edit():
-    assignments = AssignedAssignments.query.get(5)
-    assignments.name = "mathtest3"
-    db.session.commit()
-
-    return "succcess", 200
-
-@app.route('/saveAssignedFile', methods=['POST', 'GET'])
-def handle_saveFile():
+@app.route('/saveAssignedAssignmentFile', methods=['POST', 'GET'])
+def handle_saveAssignedAssignmentFile():
 
     assignment =  request.files
     form = json.loads(request.form['form'])
@@ -133,8 +125,8 @@ def handle_getAllSubjects():
     return jsonify(jsonSubjects)
 
 
-@app.route('/getAssignmentPdf', methods=['POST', 'GET'])
-def handle_returnAssignmentPdf():
+@app.route('/getAssignedAssignmentPdf', methods=['POST', 'GET'])
+def handle_returnAssignedAssignmentPdf():
 
     filePath = request.get_json()
     print(filePath)

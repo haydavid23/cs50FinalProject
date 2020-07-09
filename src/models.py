@@ -133,12 +133,12 @@ class SchoolTerm(db.Model):
 
 class AssignedAssignments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(30), unique=True, nullable=True)
-    subjectId = db.Column(db.Integer, unique=False, nullable=True)
+    name = db.Column(db.String(30), unique=True, nullable=False)
+    subjectId = db.Column(db.Integer, unique=False, nullable=False)
     note = db.Column(db.String(80), unique=False, nullable=True)
     assignmentFile = db.Column(db.String(80), unique=False, nullable=True)
     dueDate = db.Column(db.DateTime, unique=False, nullable=True)
-    semesterId = db.Column(db.Integer, unique=False, nullable=True)
+    semesterId = db.Column(db.Integer, unique=False, nullable=False)
     submittable  = db.Column(db.Boolean, unique=False, nullable=False)
 
     def __repr__(self):
