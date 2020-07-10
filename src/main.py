@@ -9,6 +9,8 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db
+from sqlalchemy import exc
+from sqlalchemy.exc import IntegrityError
 from models import User, Teacher, Subjects, Students,SchoolTerm, StudentsGrades, SubmitedAssignments, AssignedAssignments
 
 #from models import Person
@@ -22,7 +24,7 @@ MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
-UPLOAD_FOLDER = './src/pdf'
+UPLOAD_FOLDER = './src/assignedAssignments'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
@@ -63,16 +65,14 @@ def handle_getGradeBookGradeBysubject():
 def handle_assignmentsBySubject():
 
     subjectRequested = request.get_json()
-    subject = Subjects.query.filter_by(subject="Math").first()
+    subjectId = subjectRequested['id']
 
-    assignments = AssignedAssignments.query.filter_by(subjectId=subject.id).all()
+    assignments = AssignedAssignments.query.filter_by(subjectId=subjectId).all()
 
     assignmentNames = []
     
     for assignment in assignments:
         assignmentNames.append(assignment.name)
-
-    print(assignmentNames)
 
     return jsonify(assignmentNames), 200
 
@@ -140,27 +140,53 @@ def handle_setSchoolTerm():
     currentTerm = SchoolTerm.query.filter_by(current = True).first()
     schoolTerm = request.get_json()
 
-    if schoolTerm["schoolYear"] == "" or schoolTerm["quarter"] == "":
+    if schoolTerm['schoolYear'] == "" or schoolTerm["quarter"] == "":
         return jsonify("Please provide valid values")
     else:
         if currentTerm == None:
-
-            setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
-            db.session.add(setTerm)
-            db.session.commit()
- 
-            return jsonify("Success"), 200
+                setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
+                db.session.add(setTerm)
+                db.session.commit()
+                return jsonify("Success"), 200
+         
         else:
             currentTerm.current = False
-            db.session.commit()
 
-            setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
-            db.session.add(setTerm)
-            db.session.commit()
+            try:
+                setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
+                db.session.add(setTerm)
+                db.session.commit()
+            except IntegrityError as e:
+                db.session.rollback()
+                return jsonify("Error! Duplicate Entry")
+            return jsonify("Success"),200
+    
 
-            return jsonify("Success"), 200
- 
-            
+    # currentTerm = SchoolTerm.query.filter_by(current = True).first()
+    # schoolTerm = request.get_json()
+
+
+    # if schoolTerm["schoolYear"] == "" or schoolTerm["quarter"] == "":
+    #     return jsonify("Please provide valid values")
+    # else:
+    #     if currentTerm == None:
+
+    #         setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
+    #         db.session.add(setTerm)
+    #         db.session.commit()
+    #         return jsonify("Success"), 200
+    
+    #     else:
+    #         currentTerm.current = False
+    #         db.session.commit()
+
+    #         setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
+    #         db.session.add(setTerm)
+    #         db.session.commit()
+    #         return jsonify("Success"), 200
+        
+
+       
 
 
 @app.route('/getCurrentSchoolTerm', methods=['POST', 'GET'])
