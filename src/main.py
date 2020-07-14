@@ -2,6 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import datetime
 from flask import Flask, request, jsonify, url_for, send_file,json
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -94,22 +95,33 @@ def handle_saveAssignedAssignmentFile():
 
     assignment =  request.files
     form = json.loads(request.form['form'])
-    print(form['subject'])
-    print(assignment)
-
-    f = assignment['file']
-    path = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
-    f.save(path)
-    print(path)
+    
+    #checking if date exist
+    if form["dueDate"] == "" or form["dueDate"] == None:
+        #need to check if date is correct format once received
+        date_time_str = form["dueDate"]
+        date_time_obj = datetime.datetime.strptime(date_time_str, '%m/%d/%Y').date()
+    else:
+        date_time_obj = None
    
+   #checking if file exist
+    if assignment:
+        f = assignment['file']
+        path = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
+        f.save(path)
+    else:
+        path = None
+    
+    try:
+       insertAssignment = AssignedAssignments(name=form["assignmentName"], 
+       subjectId=form['subjectId'], note=form['note'], assignmentFile=path, schoolTermId=form['schoolTermId'],dueDate=date_time_obj, submittable=form["submittable"])
+       db.session.add(insertAssignment)
+       db.session.commit()
+    except:
+        db.session.rollback()
+        return jsonify("ERROR! INVALID DATA SUBMITTED")
 
-    insertAssignment = AssignedAssignments(name=form["assignmentName"], 
-    subject=form['subject'], note=form['note'], assignmentFile=path)
-
-    db.session.add(insertAssignment)
-    db.session.commit()
-
-    return jsonify("SUCCESS"), 200
+    return jsonify("SAVED SUCCESS"), 200
 
 
 @app.route('/getAllSubjects', methods=['GET'])

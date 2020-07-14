@@ -123,6 +123,7 @@ class SchoolTerm(db.Model):
 
     def serialize(self):
         return {
+            "id":self.id,
             "quarter": self.quarter,
             "schoolYear": self.schoolYear,
 
@@ -138,8 +139,9 @@ class AssignedAssignments(db.Model):
     note = db.Column(db.String(80), unique=False, nullable=True)
     assignmentFile = db.Column(db.String(80), unique=False, nullable=True)
     dueDate = db.Column(db.DateTime, unique=False, nullable=True)
-    semesterId = db.Column(db.Integer, unique=False, nullable=False)
-    submittable  = db.Column(db.Boolean, unique=False, nullable=False)
+    assignedDate = db.Column(db.DateTime, unique=False, nullable=False, default=db.func.current_timestamp())
+    schoolTermId = db.Column(db.Integer, unique=False, nullable=False)
+    submittable = db.Column(db.Boolean, unique=False, nullable=False)
 
     def __repr__(self):
         return '<AssignedAssignments %r>' % self.name
@@ -153,7 +155,7 @@ class AssignedAssignments(db.Model):
             "note": self.note,
             "assignmentFile": self.assignmentFile,
             "submittable": self.submittable,
-            "semesterId":self.semesterId
+            "schoolTermId":self.schoolTermId
             }
 
 
