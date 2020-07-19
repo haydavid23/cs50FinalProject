@@ -95,9 +95,10 @@ def handle_saveAssignedAssignmentFile():
 
     assignment =  request.files
     form = json.loads(request.form['form'])
-    
+    print(form)
+ 
     #checking if date exist
-    if form["dueDate"] == "" or form["dueDate"] == None:
+    if form["dueDate"] != "Invalid Date":
         #need to check if date is correct format once received
         date_time_str = form["dueDate"]
         date_time_obj = datetime.datetime.strptime(date_time_str, '%m/%d/%Y').date()
@@ -106,9 +107,12 @@ def handle_saveAssignedAssignmentFile():
    
    #checking if file exist
     if assignment:
-        f = assignment['file']
-        path = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
-        f.save(path)
+        try:
+            f = assignment['file']
+            path = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
+            f.save(path)
+        except:
+            return jsonify("Failed to save PDF file"),500
     else:
         path = None
     
@@ -119,9 +123,10 @@ def handle_saveAssignedAssignmentFile():
        db.session.commit()
     except:
         db.session.rollback()
-        return jsonify("ERROR! INVALID DATA SUBMITTED")
+        return jsonify("Error! Please provide all required data"),500
+       
 
-    return jsonify("SAVED SUCCESS"), 200
+    return jsonify("Assignment Added Successfully!"), 200
 
 
 @app.route('/getAllSubjects', methods=['GET'])
