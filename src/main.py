@@ -41,9 +41,14 @@ def sitemap():
 
 @app.route('/getGradeBookGradeBysubject', methods=['POST', 'GET'])
 def handle_getGradeBookGradeBysubject():
-    studentsArray = Students.query.all()
-    assignments = SubmitedAssignments.query.all()
+    form= request.get_json()
+    subjectId = form['subjectId']
+    schoolTermId = form['schoolTermId']
+    print(schoolTermId) 
 
+    studentsArray = Students.query.all()
+    assignments = SubmitedAssignments.query.filter_by(subjectId=subjectId,schoolTermId=schoolTermId).all()
+    print(assignments)
     studentAssignments = []
     student = {}
 
@@ -53,11 +58,8 @@ def handle_getGradeBookGradeBysubject():
              if work.studentId == students.id:
                  student[work.assignmentName] = work.grade
         studentAssignments.append(student)
-        print(studentAssignments)
+   
         student = {}
-    print(studentAssignments)
-
-    response_body = {"hello":"hello"}
 
     return jsonify(studentAssignments), 200
 
@@ -66,16 +68,28 @@ def handle_getGradeBookGradeBysubject():
 def handle_assignmentsBySubject():
 
     subjectRequested = request.get_json()
-    subjectId = subjectRequested['id']
+    print(subjectRequested)
+    subjectId = subjectRequested['subjectId']
+    schoolTermId = subjectRequested['schoolTermId']
+    print(schoolTermId)
 
-    assignments = AssignedAssignments.query.filter_by(subjectId=subjectId).all()
+    assignments = AssignedAssignments.query.filter_by(subjectId=subjectId,schoolTermId=schoolTermId).all()
 
-    assignmentNames = []
+
+    # assignmentNames = []
+    assignmentLst = []
     
-    for assignment in assignments:
-        assignmentNames.append(assignment.name)
+    # for assignment in assignments:
+    #     assignmentNames.append(assignment.name)
 
-    return jsonify(assignmentNames), 200
+    for assignment in assignments:
+
+        assignmentLst.append(assignment.serialize())
+
+        
+
+    return jsonify(assignmentLst), 200
+    # return jsonify(assignmentNames), 200
 
 @app.route('/getAllAssignedAssignments', methods=['POST', 'GET'])
 def handle_getAllAssignments():
@@ -145,10 +159,17 @@ def handle_getAllSubjects():
 @app.route('/getAssignedAssignmentPdf', methods=['POST', 'GET'])
 def handle_returnAssignedAssignmentPdf():
 
-    filePath = request.get_json()
-    print(filePath)
+    try:
+        filePath = request.get_json()
 
-    return send_file('pdf/samplePdf.pdf')
+        newPath = filePath["path"].replace("./src/","")
+
+    except:
+        return jsonify("Error! Could not retrieve assignment File")
+
+    return send_file(newPath)
+
+  
 
 
 @app.route('/setSchoolTerm', methods=['POST', 'GET'])
@@ -178,33 +199,7 @@ def handle_setSchoolTerm():
                 return jsonify("Error! Duplicate Entry")
             return jsonify("Success"),200
     
-
-    # currentTerm = SchoolTerm.query.filter_by(current = True).first()
-    # schoolTerm = request.get_json()
-
-
-    # if schoolTerm["schoolYear"] == "" or schoolTerm["quarter"] == "":
-    #     return jsonify("Please provide valid values")
-    # else:
-    #     if currentTerm == None:
-
-    #         setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
-    #         db.session.add(setTerm)
-    #         db.session.commit()
-    #         return jsonify("Success"), 200
     
-    #     else:
-    #         currentTerm.current = False
-    #         db.session.commit()
-
-    #         setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
-    #         db.session.add(setTerm)
-    #         db.session.commit()
-    #         return jsonify("Success"), 200
-        
-
-       
-
 
 @app.route('/getCurrentSchoolTerm', methods=['POST', 'GET'])
 def handle_getCurrentSchoolTerm():

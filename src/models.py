@@ -85,7 +85,7 @@ class SubmitedAssignments(db.Model):
     grade = db.Column(db.Float, unique=False, nullable=True)
     assignmentFile = db.Column(db.String(80), unique=False, nullable=True)
     submitedDate = db.Column(db.DateTime,unique=True, nullable=True)
-    semesterId = db.Column(db.Integer, unique=False, nullable=True)
+    schoolTermId = db.Column(db.Integer, unique=False, nullable=True)
 
     __table_args__ = (
         db.UniqueConstraint('studentId', 'subjectId','assignmentName'),
@@ -103,6 +103,7 @@ class SubmitedAssignments(db.Model):
             "assignmentName": self.assignmentName,
             "submitedDate": self.submitedDate,
             "assignmentFile": self.assignmentFile,
+            "schoolTermId": self.schoolTermId,
             "grade": self.grade
 
             # do not serialize the password, its a security breach
@@ -151,11 +152,12 @@ class AssignedAssignments(db.Model):
             "id": self.id,
             "name":self.name,
             "subjectId": self.subjectId,
-            "dueDate": self.dueDate,
             "note": self.note,
             "assignmentFile": self.assignmentFile,
-            "submittable": self.submittable,
-            "schoolTermId":self.schoolTermId
+            "dueDate": self.dueDate,
+            "assignedDate":self.assignedDate,
+            "schoolTermId":self.schoolTermId,
+            "submittable": self.submittable
             }
 
 
