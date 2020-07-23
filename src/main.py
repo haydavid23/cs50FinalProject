@@ -47,14 +47,14 @@ def handle_getGradeBookGradeBysubject():
     print(schoolTermId) 
 
     studentsArray = Students.query.all()
-    assignments = SubmitedAssignments.query.filter_by(subjectId=subjectId,schoolTermId=schoolTermId).all()
-    print(assignments)
+    submitted_assignments = SubmitedAssignments.query.filter_by(subjectId=subjectId,schoolTermId=schoolTermId).all()
+    print(submitted_assignments)
     studentAssignments = []
     student = {}
 
     for students in studentsArray:
         student['Student_Name']=students.name
-        for work in assignments:
+        for work in submitted_assignments:
              if work.studentId == students.id:
                  student[work.assignmentName] = work.grade
         studentAssignments.append(student)
@@ -109,7 +109,7 @@ def handle_saveAssignedAssignmentFile():
 
     assignment =  request.files
     form = json.loads(request.form['form'])
-    print(form)
+
  
     #checking if date exist
     if form["dueDate"] != "Invalid Date":
@@ -131,10 +131,11 @@ def handle_saveAssignedAssignmentFile():
         path = None
     
     try:
-       insertAssignment = AssignedAssignments(name=form["assignmentName"], 
-       subjectId=form['subjectId'], note=form['note'], assignmentFile=path, schoolTermId=form['schoolTermId'],dueDate=date_time_obj, submittable=form["submittable"])
-       db.session.add(insertAssignment)
-       db.session.commit()
+        print(form['schoolTermId'])
+
+        insertAssignment = AssignedAssignments(name=form['assignmentName'],subjectId=form['subjectId'], note=form['note'], assignmentFile=path, schoolTermId=form['schoolTermId'],dueDate=date_time_obj, submittable=form["submittable"])
+        db.session.add(insertAssignment)
+        db.session.commit()
     except:
         db.session.rollback()
         return jsonify("Error! Please provide all required data"),500
@@ -197,7 +198,9 @@ def handle_setSchoolTerm():
             except IntegrityError as e:
                 db.session.rollback()
                 return jsonify("Error! Duplicate Entry")
-            return jsonify("Success"),200
+            currentTerm = SchoolTerm.query.filter_by(current = True).first()
+            term = currentTerm.serialize()
+            return jsonify(term),200
     
     
 
