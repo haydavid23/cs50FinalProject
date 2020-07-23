@@ -4,7 +4,7 @@ from datetime import datetime
 db = SQLAlchemy()
 
 
-class Teacher(db.Model):
+class Teachers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=False, nullable=False)
     lastName = db.Column(db.String(120), unique=False, nullable=False)
@@ -14,7 +14,7 @@ class Teacher(db.Model):
 
     
     def __repr__(self):
-        return '<Teacher %r>' % self.username
+        return '<Teachers %r>' % self.username
 
     def serialize(self):
         return {
@@ -30,7 +30,7 @@ class Students(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=False, nullable=False)
     lastName = db.Column(db.String(120), unique=False, nullable=False)
-    gradeLevel = db.Column(db.String(80), unique=False, nullable=False)
+    gradeLevel = db.Column(db.String(80), unique=False, nullable=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     
@@ -42,18 +42,16 @@ class Students(db.Model):
             "id": self.id,
             "name": self.name,
             "lastName": self.lastName,
-            "gradeLevel": self.gradeLevel,
             "username": self.username
  
             # do not serialize the password, its a security breach
         }
 
-class StudentsGrades(db.Model):
+class StudentsClassGrades(db.Model):
   
     id = db.Column(db.Integer, primary_key=True)
     studentId = db.Column(db.Integer,  nullable=False)
     subjectId = db.Column(db.Integer, nullable=False)
-    gradeLevel = db.Column(db.String(80), unique=False, nullable=True)
     schoolTermId = db.Column(db.Integer, nullable=False)
     gradeAvg = db.Column(db.Integer, unique=False, nullable=False)
     gradeLetter = db.Column(db.String(5), unique=False, nullable=False)
@@ -70,9 +68,9 @@ class StudentsGrades(db.Model):
             "id": self.id,
             "studentId": self.studentId,
             "subjectId": self.subjectId,
-            "gradeLevel": self.gradeLevel,
             "schoolTermId": self.schoolTermId,
-            "grade": self.grade  
+            "gradeAvg": self.gradeAvg,
+            "gradeLetter": self.gradeLetter   
  
             # do not serialize the password, its a security breach
         }
@@ -86,7 +84,7 @@ class SubmitedAssignments(db.Model):
     assignmentName = db.Column(db.String(100), unique=False, nullable=False)
     grade = db.Column(db.Float, unique=False, nullable=True)
     assignmentFile = db.Column(db.String(80), unique=False, nullable=True)
-    submitedDate = db.Column(db.DateTime,unique=True, nullable=True)
+    submitedDate = db.Column(db.DateTime,unique=True, nullable=False,default=db.func.current_timestamp())
     schoolTermId = db.Column(db.Integer, unique=False, nullable=True)
 
     __table_args__ = (

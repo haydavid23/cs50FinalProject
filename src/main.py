@@ -12,7 +12,7 @@ from admin import setup_admin
 from models import db
 from sqlalchemy import exc
 from sqlalchemy.exc import IntegrityError
-from models import User, Teacher, Subjects, Students,SchoolTerm, StudentsGrades, SubmitedAssignments, AssignedAssignments
+from models import User, Teachers, Subjects, Students,SchoolTerm, StudentsClassGrades, SubmitedAssignments, AssignedAssignments
 
 #from models import Person
 
@@ -38,6 +38,94 @@ def handle_invalid_usage(error):
 @app.route('/')
 def sitemap():
     return generate_sitemap(app)
+
+@app.route('/test')
+def test():
+    
+    studentsArray = Students.query.all()
+    submitted_assignments = SubmitedAssignments.query.filter_by(schoolTermId=210, subjectId=1).all()
+    print(submitted_assignments)
+    studentAssignments = []
+    student = {}
+
+    for students in studentsArray:
+        student['Student_Name']=students.name
+        for work in submitted_assignments:
+             if work.studentId == students.id:
+                 student[work.assignmentName] = work.grade
+        studentAssignments.append(student)
+   
+        student = {}
+
+    return jsonify(studentAssignments), 200
+
+    # submited = SubmitedAssignments(studentId=2,subjectId=1, assignmentName="hw", schoolTermId=210)
+    # db.session.add(submited)
+    # db.session.commit()
+    
+    return "inserted"
+
+@app.route('/registerUser',methods=['POST', 'GET'])
+def registerUser():
+    form=request.get_json()
+    usernames = None
+
+    #checking all required data is submited
+    for key in form:
+        if form[key] == "" or form[key]==None:
+            return jsonify("Please submit all required information")
+    
+    if form["userType"] == "student":
+        usernames = Students.query.all()
+    else:
+        usernames = Teachers.all()
+
+    #checking if username already exist
+    for username in usernames:
+        if form["username"] == username.username:
+            return jsonify("Username already Exist")
+
+    #student username insert
+    if form["user"] == "student":
+        try:
+            student = Students(name=form["name"],lastName=form["lastName"],username=form["username"], password=form["password"])
+            db.session.add(student)
+            db.session.commit()
+        except:
+            return jsonify("Unexpected database error")
+    
+    #adds student to student class grade table
+    # if form["userType"] == "student":
+    #     student = Students(name=form["name"],lastName=form["lastName"],username=form["username"], password=form["password"])
+    #     db.session.add(student)
+    #     db.session.commit()
+    
+    return jsonify("user successfully registered")
+
+
+@app.route('/loginUser',methods=['POST', 'GET'])
+def loginUser():
+    form=request.get_json()
+    username= None
+
+    #checks required info submited
+    for key in form:
+        if form[key] == "" or form[key] == None:
+            return jsonify("Please provide all required information")
+    
+    if form["userType"]=="student":
+        username = Students.query.filter_by(username=form["username"], password=form["password"]).first()
+    else:
+         username = Teachers.query.filter_by(username=form["username"], password=form["password"]).first()
+
+    
+    if username != None:
+        return jsonify("Login success")
+    
+    else:
+        return jsonify("Wrong username and/or password for the selected user type")
+
+
 
 @app.route('/getGradeBookGradeBysubject', methods=['POST', 'GET'])
 def handle_getGradeBookGradeBysubject():
@@ -76,20 +164,14 @@ def handle_assignmentsBySubject():
     assignments = AssignedAssignments.query.filter_by(subjectId=subjectId,schoolTermId=schoolTermId).all()
 
 
-    # assignmentNames = []
     assignmentLst = []
     
-    # for assignment in assignments:
-    #     assignmentNames.append(assignment.name)
-
     for assignment in assignments:
 
         assignmentLst.append(assignment.serialize())
 
-        
-
     return jsonify(assignmentLst), 200
-    # return jsonify(assignmentNames), 200
+
 
 @app.route('/getAllAssignedAssignments', methods=['POST', 'GET'])
 def handle_getAllAssignments():
