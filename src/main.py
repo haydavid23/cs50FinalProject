@@ -86,12 +86,29 @@ def registerUser():
             return jsonify("Username already Exist")
 
     #student username insert
-    if form["user"] == "student":
+    if form["userType"] == "student":
         try:
-            student = Students(name=form["name"],lastName=form["lastName"],username=form["username"], password=form["password"])
-            db.session.add(student)
+
+            #gets current school term id
+            schoolTermId = SchoolTerm.query.filter_by(current=True).first()
+            termId = schoolTermId.id
+            print(termId)
+
+            # insert student in student table
+            newStudent = Students(name=form["name"],lastName=form["lastName"],username=form["username"], password=form["password"])
+            db.session.add(newStudent)
             db.session.commit()
+
+            #add student to student grade table
+            studentId = Students.query.filter_by(username=form["username"]).first()
+            print(studentId.id)
+            for x in range(6):
+                studentGrade = StudentsClassGrades(studentId=studentId.id,subjectId=x+1,schoolTermId=termId)
+                db.session.add(studentGrade)
+                db.session.commit()
+
         except:
+            db.session.rollback()
             return jsonify("Unexpected database error")
     
     #adds student to student class grade table
@@ -136,16 +153,23 @@ def handle_getGradeBookGradeBysubject():
 
     studentsArray = Students.query.all()
     submitted_assignments = SubmitedAssignments.query.filter_by(subjectId=subjectId,schoolTermId=schoolTermId).all()
-    print(submitted_assignments)
+    classGrade = StudentsClassGrades.query.filter_by(subjectId=subjectId, schoolTermId=schoolTermId).all()
+    print(classGrade)
     studentAssignments = []
     student = {}
 
+
     for students in studentsArray:
-        student['Student_Name']=students.name
+        student['Student Name']=students.name
         for work in submitted_assignments:
-             if work.studentId == students.id:
+            if work.studentId == students.id:
                  student[work.assignmentName] = work.grade
+            for grade in classGrade:
+                if grade.studentId == students.id:
+                    student["Avg Grade"] = grade.gradeAvg
+                    student["Grade Letter"]= grade.gradeLetter
         studentAssignments.append(student)
+        print("ddd")
    
         student = {}
 
@@ -268,7 +292,11 @@ def handle_setSchoolTerm():
                 setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
                 db.session.add(setTerm)
                 db.session.commit()
-                return jsonify("Success"), 200
+                
+                #returns added school term
+                currentTerm = SchoolTerm.query.filter_by(current = True).first()
+                term = currentTerm.serialize()
+                return jsonify(term),200
          
         else:
             currentTerm.current = False
@@ -280,6 +308,7 @@ def handle_setSchoolTerm():
             except IntegrityError as e:
                 db.session.rollback()
                 return jsonify("Error! Duplicate Entry")
+
             currentTerm = SchoolTerm.query.filter_by(current = True).first()
             term = currentTerm.serialize()
             return jsonify(term),200
