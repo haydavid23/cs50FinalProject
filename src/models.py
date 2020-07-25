@@ -84,7 +84,7 @@ class SubmitedAssignments(db.Model):
     assignmentName = db.Column(db.String(100), unique=False, nullable=False)
     grade = db.Column(db.Float, unique=False, nullable=True)
     assignmentFile = db.Column(db.String(80), unique=False, nullable=True)
-    submitedDate = db.Column(db.DateTime,unique=True, nullable=False,default=db.func.current_timestamp())
+    submitedDate = db.Column(db.DateTime,unique=True, nullable=True,default=db.func.current_timestamp())
     schoolTermId = db.Column(db.Integer, unique=False, nullable=True)
 
     __table_args__ = (

@@ -149,12 +149,11 @@ def handle_getGradeBookGradeBysubject():
     form= request.get_json()
     subjectId = form['subjectId']
     schoolTermId = form['schoolTermId']
-    print(schoolTermId) 
+
 
     studentsArray = Students.query.all()
     submitted_assignments = SubmitedAssignments.query.filter_by(subjectId=subjectId,schoolTermId=schoolTermId).all()
     classGrade = StudentsClassGrades.query.filter_by(subjectId=subjectId, schoolTermId=schoolTermId).all()
-    print(classGrade)
     studentAssignments = []
     student = {}
 
@@ -163,13 +162,14 @@ def handle_getGradeBookGradeBysubject():
         student['Student Name']=students.name
         for work in submitted_assignments:
             if work.studentId == students.id:
-                 student[work.assignmentName] = work.grade
-            for grade in classGrade:
-                if grade.studentId == students.id:
-                    student["Avg Grade"] = grade.gradeAvg
-                    student["Grade Letter"]= grade.gradeLetter
+                 student[work.assignmentName] = work.grade       
+        for grade in classGrade:
+  
+            if grade.studentId == students.id:
+                student["Avg Grade"] = grade.gradeAvg
+                student["Grade Letter"]= grade.gradeLetter
         studentAssignments.append(student)
-        print("ddd")
+
    
         student = {}
 
@@ -191,8 +191,9 @@ def handle_assignmentsBySubject():
     assignmentLst = []
     
     for assignment in assignments:
-
         assignmentLst.append(assignment.serialize())
+
+    print(assignmentLst)
 
     return jsonify(assignmentLst), 200
 
