@@ -143,6 +143,30 @@ def loginUser():
         return jsonify("Wrong username and/or password for the selected user type")
 
 
+@app.route('/getPdfForGradeBook',methods=['POST', 'GET'])
+def getPdfForGradeBook():
+
+    schoolTerm_id = SchoolTerm.query.filter_by(current=True).first()
+
+    form= request.get_json()
+    student_id = form["studentId"]
+    subject_id = form["subjectId"]
+
+
+
+
+    studentPdfFile = SubmitedAssignments.query.filter_by(subjectId=subject_id,schoolTermId=schoolTerm_id).all()
+
+    
+
+
+    # for pdf in studentPdfFile:
+    #     print(pdf.serialize())
+    
+
+    return  jsonify("dsdf")
+    # return jsonify(studentAssignments), 200
+
 
 @app.route('/getGradeBookGradeBysubject', methods=['POST', 'GET'])
 def handle_getGradeBookGradeBysubject():
@@ -160,6 +184,7 @@ def handle_getGradeBookGradeBysubject():
 
     for students in studentsArray:
         student['Student Name']=students.name
+        student['id'] = students.id
         for work in submitted_assignments:
             if work.studentId == students.id:
                  student[work.assignmentName] = work.grade       
@@ -170,10 +195,12 @@ def handle_getGradeBookGradeBysubject():
                 student["Grade Letter"]= grade.gradeLetter
         studentAssignments.append(student)
 
-   
+        print(student)
         student = {}
 
     return jsonify(studentAssignments), 200
+
+
 
 
 @app.route('/getAssignedAssignmentsBySubject', methods=['POST', 'GET'])

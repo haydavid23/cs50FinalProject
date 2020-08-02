@@ -93,7 +93,7 @@ class SubmitedAssignments(db.Model):
 
 
     def __repr__(self):
-        return '<SubmitedAssignments %r>' % self.assignmentName
+        return '<SubmitedAssignments %r>' % self.id
 
     def serialize(self):
         return {
