@@ -53,7 +53,7 @@ class StudentsClassGrades(db.Model):
     studentId = db.Column(db.Integer,  nullable=False)
     subjectId = db.Column(db.Integer, nullable=False)
     schoolTermId = db.Column(db.Integer, nullable=False)
-    gradeAvg = db.Column(db.Integer, unique=False, nullable=True)
+    gradeAvg = db.Column(db.Float, unique=False, nullable=True)
     gradeLetter = db.Column(db.String(5), unique=False, nullable=True)
 
     __table_args__ = (

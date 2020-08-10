@@ -111,11 +111,7 @@ def registerUser():
             db.session.rollback()
             return jsonify("Unexpected database error")
     
-    #adds student to student class grade table
-    # if form["userType"] == "student":
-    #     student = Students(name=form["name"],lastName=form["lastName"],username=form["username"], password=form["password"])
-    #     db.session.add(student)
-    #     db.session.commit()
+
     
     return jsonify("user successfully registered")
 
@@ -146,24 +142,20 @@ def loginUser():
 @app.route('/getPdfForGradeBook',methods=['POST', 'GET'])
 def getPdfForGradeBook():
 
-    schoolTerm_id = SchoolTerm.query.filter_by(current=True).first()
+    # schoolTerm_id = SchoolTerm.query.filter_by(current=True).first()
 
-    form= request.get_json()
-    student_id = form["studentId"]
-    subject_id = form["subjectId"]
-
-
+    # form= request.get_json()
+    # student_id = form["studentId"]
+    # subject_id = form["subjectId"]
 
 
-    studentPdfFile = SubmitedAssignments.query.filter_by(subjectId=subject_id,schoolTermId=schoolTerm_id).all()
+
+    # studentPdfFile = SubmitedAssignments.query.filter_by(subjectId=subject_id,schoolTermId=schoolTerm_id).all()
 
     
-
-
     # for pdf in studentPdfFile:
     #     print(pdf.serialize())
     
-
     return  jsonify("dsdf")
     # return jsonify(studentAssignments), 200
 
@@ -353,6 +345,34 @@ def handle_getCurrentSchoolTerm():
         else:
             term = currentTerm.serialize()
             return jsonify(term), 200
+
+
+@app.route('/getAssignmentsForStudent', methods=['POST', 'GET'])
+def handle_getAssignmentsForStudents():
+    
+    
+    return jsonify("Test"), 200
+
+
+@app.route('/loginStudent', methods=['POST'])
+def loginStudent():
+
+    form=request.get_json()
+    student= None
+
+    #checks required info submited
+    for key in form:
+        if form[key] == "" or form[key] == None:
+            return jsonify("Please provide all required information")
+    
+    student= Students.query.filter_by(username=form["username"], password=form["password"]).first()
+    
+    if student != None:
+        print(student.serialize())
+        return jsonify(student.serialize())
+    
+    else:
+        return jsonify("Wrong username and/or password for the selected user type")
 
 
 
