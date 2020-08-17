@@ -83,7 +83,7 @@ class SubmitedAssignments(db.Model):
     subjectId = db.Column(db.Integer, unique=False, nullable=False)
     assignmentName = db.Column(db.String(100), unique=False, nullable=False)
     grade = db.Column(db.Float, unique=False, nullable=True)
-    assignmentFile = db.Column(db.String(80), unique=False, nullable=True)
+    submittedFile = db.Column(db.String(80), unique=False, nullable=True)
     submitedDate = db.Column(db.DateTime,unique=True, nullable=True,default=db.func.current_timestamp())
     schoolTermId = db.Column(db.Integer, unique=False, nullable=True)
 
@@ -102,7 +102,7 @@ class SubmitedAssignments(db.Model):
             "studentId": self.studentId,
             "assignmentName": self.assignmentName,
             "submitedDate": self.submitedDate,
-            "assignmentFile": self.assignmentFile,
+            "submittedFile": self.submittedFile,
             "schoolTermId": self.schoolTermId,
             "grade": self.grade
 
@@ -136,7 +136,7 @@ class SchoolTerm(db.Model):
 
 class AssignedAssignments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(30), unique=False, nullable=False)
+    assignmentName = db.Column(db.String(30), unique=False, nullable=False)
     subjectId = db.Column(db.Integer, unique=False, nullable=False)
     note = db.Column(db.String(80), unique=False, nullable=True)
     assignmentFile = db.Column(db.String(80), unique=False, nullable=True)
@@ -146,16 +146,16 @@ class AssignedAssignments(db.Model):
     submittable = db.Column(db.Boolean, unique=False, nullable=False)
 
     __table_args__ = (
-        db.UniqueConstraint('name', 'schoolTermId'),
+        db.UniqueConstraint('assignmentName', 'schoolTermId'),
     )
 
     def __repr__(self):
-        return '<AssignedAssignments %r>' % self.name
+        return '<AssignedAssignments %r>' % self.assignmentName
 
     def serialize(self):
         return {
             "id": self.id,
-            "name":self.name,
+            "assignmentName":self.assignmentName,
             "subjectId": self.subjectId,
             "note": self.note,
             "assignmentFile": self.assignmentFile,

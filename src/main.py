@@ -10,7 +10,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db
-from sqlalchemy import exc
+from sqlalchemy import exc,desc
 from sqlalchemy.exc import IntegrityError
 from models import User, Teachers, Subjects, Students,SchoolTerm, StudentsClassGrades, SubmitedAssignments, AssignedAssignments
 
@@ -257,9 +257,9 @@ def handle_saveAssignedAssignmentFile():
         path = None
     
     try:
-        print(form['schoolTermId'])
+        print(form)
 
-        insertAssignment = AssignedAssignments(name=form['assignmentName'],subjectId=form['subjectId'], note=form['note'], assignmentFile=path, schoolTermId=form['schoolTermId'],dueDate=date_time_obj, submittable=form["submittable"])
+        insertAssignment = AssignedAssignments(assignmentName=form['assignmentName'],subjectId=form['subjectId'], note=form['note'], assignmentFile=path, schoolTermId=form['schoolTermId'],dueDate=date_time_obj, submittable=form["submittable"])
         db.session.add(insertAssignment)
         db.session.commit()
     except:
@@ -285,19 +285,16 @@ def handle_getAllSubjects():
 
 @app.route('/getAssignedAssignmentPdf', methods=['POST', 'GET'])
 def handle_returnAssignedAssignmentPdf():
-
+    print("success")
     try:
         filePath = request.get_json()
-
         newPath = filePath["path"].replace("./src/","")
+        return send_file(newPath)
 
     except:
         return jsonify("Error! Could not retrieve assignment File")
 
-    return send_file(newPath)
-
-  
-
+ 
 
 @app.route('/setSchoolTerm', methods=['POST', 'GET'])
 def handle_setSchoolTerm():
@@ -350,8 +347,32 @@ def handle_getCurrentSchoolTerm():
 @app.route('/getAssignmentsForStudent', methods=['POST', 'GET'])
 def handle_getAssignmentsForStudents():
     
+    form=request.get_json()
+    subjectId = form['subjectId']
+    schoolTermId = form['schoolTermId']
+    studentId= form['studentId']
+
+    studentAssignments = []
+    assign = None
+  
+
+    assignedAssignments = AssignedAssignments.query.filter_by(subjectId = subjectId, schoolTermId=schoolTermId).order_by(desc(AssignedAssignments.assignedDate)).all()
     
-    return jsonify("Test"), 200
+
+    submittedAssignments = SubmitedAssignments.query.filter_by(subjectId = subjectId, schoolTermId=schoolTermId,studentId=studentId).all()
+
+    for assignment in assignedAssignments:
+        assign = {**assignment.serialize()}
+        for submitted in submittedAssignments:
+            if assignment.assignmentName == submitted.assignmentName:
+                assign = {**assignment.serialize(),**submitted.serialize()}
+        print(assign)
+        studentAssignments.append(assign)
+        
+        
+
+   
+    return jsonify(studentAssignments), 200
 
 
 @app.route('/loginStudent', methods=['POST'])
