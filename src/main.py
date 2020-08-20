@@ -27,6 +27,8 @@ CORS(app)
 setup_admin(app)
 UPLOAD_FOLDER = './src/assignedAssignments'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+SUBMITTED_UPLOAD_FOLDER = './src/submittedAssignments'
+app.config['SUBMITTED_UPLOAD_FOLDER'] = SUBMITTED_UPLOAD_FOLDER
 
 
 # Handle/serialize errors like a JSON object
@@ -270,6 +272,34 @@ def handle_saveAssignedAssignmentFile():
     return jsonify("Assignment Added Successfully!"), 200
 
 
+@app.route('/saveSubmittedAssignmentFile', methods=['POST', 'GET'])
+def handle_saveSubmittedAssignmentFile():
+
+    assignment =  request.files
+    form = json.loads(request.form['form'])
+    print(form)
+    
+
+    if assignment:
+        try:
+            f = assignment['file']
+            path = os.path.join(app.config['SUBMITTED_UPLOAD_FOLDER'], f.filename)
+            f.save(path)
+            
+            submittedAssignment = SubmitedAssignments(studentId=form['studentId'],subjectId=form['subjectId'],schoolTermId=form['schoolTermid'],assignmentName=form['assignmentName'],submittedFile=path)
+            db.session.add(submittedAssignment)
+            db.session.commit()
+
+            # {'schoolTermid': 213, 'subjectId': 1, 'assignmentName': 'test1',
+            #  'studentId': 13}
+
+            return jsonify("Assignment Submitted!"),200
+        except:
+            return jsonify("Failed to save PDF file"),500
+
+    return jsonify("Empty assignment. Please submit an assignment"),500
+
+
 @app.route('/getAllSubjects', methods=['GET'])
 def handle_getAllSubjects():
 
@@ -283,9 +313,9 @@ def handle_getAllSubjects():
     return jsonify(jsonSubjects)
 
 
-@app.route('/getAssignedAssignmentPdf', methods=['POST', 'GET'])
-def handle_returnAssignedAssignmentPdf():
-    print("success")
+@app.route('/getAssignmentPdf', methods=['POST', 'GET'])
+def handle_returnAssignmentPdf():
+   
     try:
         filePath = request.get_json()
         newPath = filePath["path"].replace("./src/","")
