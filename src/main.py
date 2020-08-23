@@ -144,22 +144,45 @@ def loginUser():
 @app.route('/getPdfForGradeBook',methods=['POST', 'GET'])
 def getPdfForGradeBook():
 
-    # schoolTerm_id = SchoolTerm.query.filter_by(current=True).first()
-
     # form= request.get_json()
-    # student_id = form["studentId"]
-    # subject_id = form["subjectId"]
+    # studentPdfs = []
 
-
-
-    # studentPdfFile = SubmitedAssignments.query.filter_by(subjectId=subject_id,schoolTermId=schoolTerm_id).all()
+    # studentPdfFile = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form['schoolTermId'], studentId=form['studentId']).all()
 
     
     # for pdf in studentPdfFile:
-    #     print(pdf.serialize())
+    #     studentPdfs.append(pdf.serialize())
     
-    return  jsonify("dsdf")
-    # return jsonify(studentAssignments), 200
+    # return  jsonify(studentPdfs),200
+
+
+    form= request.get_json()
+    studentPdfs = []
+    studentAssignment = {}
+
+    studentPdfFile = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form['schoolTermId'], studentId=form['studentId']).all()
+
+
+    assignmentsArray = AssignedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form['schoolTermId']).all()
+
+
+    for assignment in assignmentsArray:
+        studentAssignment['assignmentName']=assignment.assignmentName
+        studentAssignment['submittedFile']=None
+        studentAssignment['submitttedDate']=None
+        for pdf in studentPdfFile:
+            if pdf.assignmentName == assignment.assignmentName:
+                studentAssignment['assignmentName']=assignment.assignmentName
+                studentAssignment['submittedFile']=pdf.submittedFile
+                studentAssignment['submitttedDate']=pdf.submitedDate
+          
+        studentPdfs.append(studentAssignment)
+        studentAssignment  = {}
+              
+        
+    print(studentPdfs)
+    return  jsonify(studentPdfs),200
+
 
 
 @app.route('/getGradeBookGradeBysubject', methods=['POST', 'GET'])
@@ -290,9 +313,6 @@ def handle_saveSubmittedAssignmentFile():
             db.session.add(submittedAssignment)
             db.session.commit()
 
-            # {'schoolTermid': 213, 'subjectId': 1, 'assignmentName': 'test1',
-            #  'studentId': 13}
-
             return jsonify("Assignment Submitted!"),200
         except:
             return jsonify("Failed to save PDF file"),500
@@ -311,6 +331,18 @@ def handle_getAllSubjects():
         jsonSubjects.append(subject.serialize())
 
     return jsonify(jsonSubjects)
+
+
+@app.route('/updateGradeBook', methods=['POST','GET'])
+def handle_updateGradeBook():
+
+    form = request.get_json()
+    
+    # submittedAssignment = SubmitedAssignment.query.filter_by()
+
+    print(form)
+  
+    return jsonify("Test")
 
 
 @app.route('/getAssignmentPdf', methods=['POST', 'GET'])
@@ -396,7 +428,6 @@ def handle_getAssignmentsForStudents():
         for submitted in submittedAssignments:
             if assignment.assignmentName == submitted.assignmentName:
                 assign = {**assignment.serialize(),**submitted.serialize()}
-        print(assign)
         studentAssignments.append(assign)
         
         
