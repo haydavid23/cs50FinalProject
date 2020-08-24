@@ -103,7 +103,6 @@ def registerUser():
 
             #add student to student grade table
             studentId = Students.query.filter_by(username=form["username"]).first()
-            print(studentId.id)
             for x in range(6):
                 studentGrade = StudentsClassGrades(studentId=studentId.id,subjectId=x+1,schoolTermId=termId)
                 db.session.add(studentGrade)
@@ -144,18 +143,6 @@ def loginUser():
 @app.route('/getPdfForGradeBook',methods=['POST', 'GET'])
 def getPdfForGradeBook():
 
-    # form= request.get_json()
-    # studentPdfs = []
-
-    # studentPdfFile = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form['schoolTermId'], studentId=form['studentId']).all()
-
-    
-    # for pdf in studentPdfFile:
-    #     studentPdfs.append(pdf.serialize())
-    
-    # return  jsonify(studentPdfs),200
-
-
     form= request.get_json()
     studentPdfs = []
     studentAssignment = {}
@@ -188,6 +175,7 @@ def getPdfForGradeBook():
 @app.route('/getGradeBookGradeBysubject', methods=['POST', 'GET'])
 def handle_getGradeBookGradeBysubject():
     form= request.get_json()
+    print(form)
     subjectId = form['subjectId']
     schoolTermId = form['schoolTermId']
 
@@ -212,7 +200,6 @@ def handle_getGradeBookGradeBysubject():
                 student["Grade Letter"]= grade.gradeLetter
         studentAssignments.append(student)
 
-        print(student)
         student = {}
 
     return jsonify(studentAssignments), 200
@@ -224,10 +211,9 @@ def handle_getGradeBookGradeBysubject():
 def handle_assignmentsBySubject():
 
     subjectRequested = request.get_json()
-    print(subjectRequested)
     subjectId = subjectRequested['subjectId']
     schoolTermId = subjectRequested['schoolTermId']
-    print(schoolTermId)
+
 
     assignments = AssignedAssignments.query.filter_by(subjectId=subjectId,schoolTermId=schoolTermId).all()
 
@@ -337,12 +323,46 @@ def handle_getAllSubjects():
 def handle_updateGradeBook():
 
     form = request.get_json()
-    
-    # submittedAssignment = SubmitedAssignment.query.filter_by()
 
-    print(form)
+    
+    try:
+    #updates submitted assignment grade.
+        for student in form:
+            print(student)
+            for assignment,grade in student["assignments"].items():
+            
+                submittedAssignment = SubmitedAssignments.query.filter_by(studentId=student["id"],subjectId=student['subjectId'], 
+                schoolTermId=student["schoolTermId"], assignmentName=assignment).first()
+                if submittedAssignment == None and grade !=0:
+                    return jsonify("Make sure " + assignment + " for " + student['Student Name'] +  " is submitted before grading it")
+                
+                #checking grade is valid
+                try:
+                    if grade <0 or grade > 100:
+                        return jsonify("Invalid grade number") 
+                except:
+                    return jsonify("Grade must be a number") 
+
+                if submittedAssignment != None:
+                    submittedAssignment.grade = grade
+                    db.session.commit()
+
+                classGrade = StudentsClassGrades.query.filter_by(studentId=student["id"],subjectId=student["subjectId"],schoolTermId=student["schoolTermId"]).first()
+                classGrade.gradeAvg = student["Avg Grade"]
+                classGrade.gradeLetter = student["Grade Letter"]
+
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify("Error saving grade. Please try again")
+
+
+
+            # {'id': 13, 'Student Name': 'David', 'Avg Grade': 16.67, 'Grade Letter': 'F', 
+            # 'assignments': {'hw1': 50, 'hw2': 0, 'test1': 0}, 'subjectId': 1, 'schoolTermId': 213}
+
+
   
-    return jsonify("Test")
+    return jsonify("Grade Book Saved Succesfully!")
 
 
 @app.route('/getAssignmentPdf', methods=['POST', 'GET'])
