@@ -175,7 +175,6 @@ def getPdfForGradeBook():
 @app.route('/getGradeBookGradeBysubject', methods=['POST', 'GET'])
 def handle_getGradeBookGradeBysubject():
     form= request.get_json()
-    print(form)
     subjectId = form['subjectId']
     schoolTermId = form['schoolTermId']
 
@@ -203,6 +202,15 @@ def handle_getGradeBookGradeBysubject():
         student = {}
 
     return jsonify(studentAssignments), 200
+
+
+
+@app.route('/getStudentClassGrades', methods=['POST', 'GET'])
+def handle_getStudentClassGrades():
+
+    form = request.get_json()
+    print(form)
+    return jsonify("Test"), 200
 
 
 
@@ -286,8 +294,6 @@ def handle_saveSubmittedAssignmentFile():
 
     assignment =  request.files
     form = json.loads(request.form['form'])
-    print(form)
-    
 
     if assignment:
         try:
@@ -328,7 +334,6 @@ def handle_updateGradeBook():
     try:
     #updates submitted assignment grade.
         for student in form:
-            print(student)
             for assignment,grade in student["assignments"].items():
             
                 submittedAssignment = SubmitedAssignments.query.filter_by(studentId=student["id"],subjectId=student['subjectId'], 
@@ -354,11 +359,6 @@ def handle_updateGradeBook():
     except IntegrityError as e:
         db.session.rollback()
         return jsonify("Error saving grade. Please try again")
-
-
-
-            # {'id': 13, 'Student Name': 'David', 'Avg Grade': 16.67, 'Grade Letter': 'F', 
-            # 'assignments': {'hw1': 50, 'hw2': 0, 'test1': 0}, 'subjectId': 1, 'schoolTermId': 213}
 
 
   
