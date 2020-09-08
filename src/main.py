@@ -11,6 +11,7 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db
 from sqlalchemy import exc,desc
+from sqlalchemy.orm.util import join as join
 from sqlalchemy.exc import IntegrityError
 from models import User, Teachers, Subjects, Students,SchoolTerm, StudentsClassGrades, SubmitedAssignments, AssignedAssignments
 
@@ -79,8 +80,8 @@ def registerUser():
     
     if form["userType"] == "student":
         usernames = Students.query.all()
-    else:
-        usernames = Teachers.all()
+    elif form["userType"] == "teacher":
+        usernames = Teachers.query.all()
 
     #checking if username already exist
     for username in usernames:
@@ -90,11 +91,10 @@ def registerUser():
     #student username insert
     if form["userType"] == "student":
         try:
-
             #gets current school term id
             schoolTermId = SchoolTerm.query.filter_by(current=True).first()
             termId = schoolTermId.id
-            print(termId)
+   
 
             # insert student in student table
             newStudent = Students(name=form["name"],lastName=form["lastName"],username=form["username"], password=form["password"])
@@ -111,7 +111,20 @@ def registerUser():
         except:
             db.session.rollback()
             return jsonify("Unexpected database error")
-    
+
+    elif form["userType"] == "teacher":
+        try:
+            print(form)
+            # insert new teacher in teacher table
+            newTeacher = Teachers(name=form["name"],lastName=form["lastName"],username=form["userName"], password=form["password"])
+            db.session.add(newTeacher)
+            db.session.commit()
+        
+        except:
+            db.session.rollback()
+            return jsonify("Unexpected database error")
+
+
 
     
     return jsonify("user successfully registered")
@@ -129,12 +142,12 @@ def loginUser():
     
     if form["userType"]=="student":
         username = Students.query.filter_by(username=form["username"], password=form["password"]).first()
-    else:
+    elif form['userType'] == 'admin':
          username = Teachers.query.filter_by(username=form["username"], password=form["password"]).first()
 
     
     if username != None:
-        return jsonify("Login success")
+        return jsonify(username.serialize())
     
     else:
         return jsonify("Wrong username and/or password for the selected user type")
@@ -205,12 +218,50 @@ def handle_getGradeBookGradeBysubject():
 
 
 
+@app.route('/deleteAssignedAssignment', methods=['POST', 'GET'])
+def handle_deleteAssignedAssignment():
+
+    form = request.get_json()
+    print(form)
+  
+    try:
+        assignedAssignments = AssignedAssignments.query.filter_by(id=form['assignmentId']).first()
+        submittedAssignments = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'], assignmentName =form['assignmentName']).delete()
+        db.session.delete(assignedAssignments)
+
+        db.session.commit()
+        return jsonify("Assignment Deleted"), 200
+    except:
+        db.session.rollback()
+        return jsonify("Error! Unable to delete assignment."),500
+        
+
+        
+    return jsonify("Assignment Deleted"), 200
+
+
+
+
 @app.route('/getStudentClassGrades', methods=['POST', 'GET'])
 def handle_getStudentClassGrades():
 
     form = request.get_json()
-    print(form)
-    return jsonify("Test"), 200
+  
+    studentId = form['studentid']
+    schoolTermId = form['currentTermId']
+
+    # studentGrades = StudentsClassGrades.query.filter_by(studentId=studentId,schoolTermId=schoolTermId).all()
+    
+    studentGrades = db.session.query(Subjects,StudentsClassGrades).join(
+    StudentsClassGrades, Subjects.id == StudentsClassGrades.subjectId).filter_by(studentId=studentId,schoolTermId=schoolTermId).all()
+
+  
+    gradesArr = []
+
+    for classGrade in studentGrades:
+        gradesArr.append({**classGrade[1].serialize(),**classGrade[0].serialize()})
+        
+    return jsonify(gradesArr), 200
 
 
 
@@ -456,25 +507,29 @@ def handle_getAssignmentsForStudents():
     return jsonify(studentAssignments), 200
 
 
-@app.route('/loginStudent', methods=['POST'])
-def loginStudent():
+# @app.route('/loginStudent', methods=['POST'])
+# def loginStudent():
 
-    form=request.get_json()
-    student= None
+#     form=request.get_json()
+#     student= None
 
-    #checks required info submited
-    for key in form:
-        if form[key] == "" or form[key] == None:
-            return jsonify("Please provide all required information")
+#     #checks required info submited
+#     for key in form:
+#         if form[key] == "" or form[key] == None:
+#             return jsonify("Please provide all required information")
     
-    student= Students.query.filter_by(username=form["username"], password=form["password"]).first()
+#     # student= Students.query.filter_by(username=form["username"], password=form["password"]).first()
+        
+#     if form["userType"]=="student":
+#         username = Students.query.filter_by(username=form["username"], password=form["password"]).first()
+#     elif form[userType] == 'admin':
+#          username = Teachers.query.filter_by(username=form["userName"], password=form["password"]).first()
     
-    if student != None:
-        print(student.serialize())
-        return jsonify(student.serialize())
+#     if username != None:
+#         return jsonify(username.serialize())
     
-    else:
-        return jsonify("Wrong username and/or password for the selected user type")
+#     else:
+#         return jsonify("Wrong username and/or password for the selected user type")
 
 
 

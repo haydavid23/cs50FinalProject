@@ -8,7 +8,6 @@ class Teachers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=False, nullable=False)
     lastName = db.Column(db.String(120), unique=False, nullable=False)
-    gradeLevel = db.Column(db.String(80), unique=False, nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
 
@@ -21,7 +20,6 @@ class Teachers(db.Model):
             "id": self.id,
             "name": self.name,
             "lastName": self.lastName,
-            "gradeLevel": self.gradeLevel,
             "username": self.username
             # do not serialize the password, its a security breach
         }
