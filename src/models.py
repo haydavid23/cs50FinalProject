@@ -137,7 +137,7 @@ class AssignedAssignments(db.Model):
     assignmentName = db.Column(db.String(30), unique=False, nullable=False)
     subjectId = db.Column(db.Integer, unique=False, nullable=False)
     note = db.Column(db.String(80), unique=False, nullable=True)
-    assignmentFile = db.Column(db.String(80), unique=False, nullable=True)
+    assignmentFile = db.Column(db.String(200), unique=False, nullable=True)
     dueDate = db.Column(db.DateTime, unique=False, nullable=True)
     assignedDate = db.Column(db.DateTime, unique=False, nullable=False, default=db.func.current_timestamp())
     schoolTermId = db.Column(db.Integer, unique=False, nullable=False)
