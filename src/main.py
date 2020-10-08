@@ -226,7 +226,7 @@ def handle_deleteAssignedAssignment():
 
     students = Students.query.all()
 
-    assignedAssignmentsTotal=AssignedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form["schoolTermId"]).count()
+    # assignedAssignmentsTotal=AssignedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form["schoolTermId"]).count()
   
 
     for student in students:
@@ -234,32 +234,20 @@ def handle_deleteAssignedAssignment():
 
 
     try:
-        assignedAssignments = AssignedAssignments.query.filter_by(id=form['assignmentId']).first()
-
-        
-        # subAssignments = SubmitedAssignments.query.all()
-
-        # gradesAvg = StudentsClassGrades.query.all()
-
-        # for assignment in subAssignments:
-        #    if assignment.serialize()['assignmentName'] == form['assignmentName'] and assignment.serialize()['grade'] is not None:
-        #        for gradeAvg in gradesAvg:
-        #            if assignment.serialize()['studentId'] == gradeAvg.serialize()['studentId'] and assignment.serialize()['subjectId'] == gradeAvg.serialize()['subjectId'] and assignment.serialize()['schoolTermId'] == gradeAvg.serialize()['schoolTermId']:
-        #                gradeAvg.gradeAvg = 
+        # assignedAssignments = AssignedAssignments.query.filter_by(id=form['assignmentId']).first()
+        assignedAssignments = AssignedAssignments.query.filter_by(id=form['assignmentId']).delete()
+        subAssignments = SubmitedAssignments.query.all()
 
 
-        # submittedAssignments = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'], assignmentName =form['assignmentName']).delete()
+
+        submittedAssignments = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'], assignmentName =form['assignmentName']).delete()
         # db.session.delete(assignedAssignments)
 
-        # db.session.commit()
-        # return jsonify("Assignment Deleted"), 200
-    except:
-        db.session.rollback()
-        return jsonify("Error! Unable to delete assignment."),500
-        
-    #updates student grades avg
-    try:
         avgGrade = 0
+        db.session.commit()
+
+        assignedAssignmentsTotal=AssignedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form["schoolTermId"]).count()
+
         gradeLetter = None
     
         for studentId in studentIds:
@@ -267,11 +255,14 @@ def handle_deleteAssignedAssignment():
             studentClassGrades = StudentsClassGrades.query.filter_by(studentId=studentId).first()
         
             for assignment in studentAssignments:
+                print(assignment.serialize())
                 avgGrade += assignment.serialize()["grade"]
                 
-            
+            print(avgGrade)
             avgGrade = avgGrade / assignedAssignmentsTotal
             studentClassGrades.gradeAvg = avgGrade
+            
+            print(avgGrade)
 
             def gradeLetter(avgGrade):
                 if avgGrade >=0 and avgGrade < 60:
@@ -290,12 +281,54 @@ def handle_deleteAssignedAssignment():
             studentClassGrades.gradeLetter = gradeLetter(avgGrade)
             db.session.commit()
             avgGrade = 0
+
+
+        return jsonify("Assignment Deleted"), 200
+    except:
+        db.session.rollback()
+        return jsonify("Error! Unable to delete assignment."),500
+        
+    #updates student grades avg
+    # try:
+    #     avgGrade = 0
+    #     gradeLetter = None
+    
+    #     for studentId in studentIds:
+    #         studentAssignments = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'], studentId=studentId).all()
+    #         studentClassGrades = StudentsClassGrades.query.filter_by(studentId=studentId).first()
+        
+    #         for assignment in studentAssignments:
+    #             avgGrade += assignment.serialize()["grade"]
+                
+  
+    #         avgGrade = avgGrade / assignedAssignmentsTotal
+    #         studentClassGrades.gradeAvg = avgGrade
+            
+    #         print(avgGrade)
+
+    #         def gradeLetter(avgGrade):
+    #             if avgGrade >=0 and avgGrade < 60:
+    #                 return "F"
+    #             elif avgGrade >=60 and avgGrade <70:
+    #                 return "D"
+    #             elif avgGrade >=70 and avgGrade <80:
+    #                 return "C"
+    #             elif avgGrade >=80 and avgGrade <90:
+    #                 return "B"
+    #             elif avgGrade >=90 and avgGrade <100:
+    #                 return "A"
+    #             else:
+    #                 return "N/A"
+
+    #         studentClassGrades.gradeLetter = gradeLetter(avgGrade)
+    #         db.session.commit()
+    #         avgGrade = 0
                
      
 
 
-    except:
-        jsonify("Error"), 500
+    # except:
+    #     jsonify("Error"), 500
     
     return jsonify("Avg Grade Updated"), 200
 
