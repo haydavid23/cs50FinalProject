@@ -552,14 +552,31 @@ def handle_setSchoolTerm():
 
             try:
                 setTerm = SchoolTerm(schoolYear=schoolTerm["schoolYear"],quarter=schoolTerm['quarter'], current=True)
+
                 db.session.add(setTerm)
                 db.session.commit()
             except IntegrityError as e:
                 db.session.rollback()
                 return jsonify("Error! Duplicate Entry")
 
-            currentTerm = SchoolTerm.query.filter_by(current = True).first()
-            term = currentTerm.serialize()
+            try:
+                #adds school term to students class grades table     
+                students = Students.query.all()
+                currentTerm = SchoolTerm.query.filter_by(current = True).first()
+                term = currentTerm.serialize()
+
+                for student in students:
+                    studentId = student.serialize()
+                    for x in range(6):
+                        studentGrade = StudentsClassGrades(studentId=studentId["id"],subjectId=x+1,schoolTermId=term["id"])
+                        db.session.add(studentGrade)
+                        db.session.commit()
+
+            
+            except:
+                db.session.rollback()
+                return jsonify("Error!")
+
             return jsonify(term),200
     
     
