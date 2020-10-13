@@ -72,6 +72,7 @@ def test():
 def registerUser():
     form=request.get_json()
     usernames = None
+    print(form)
 
     #checking all required data is submited
     for key in form:
@@ -123,10 +124,14 @@ def registerUser():
             db.session.rollback()
             return jsonify("Unexpected database error")
 
-
-
+    username = None
+    if form["userType"]=="student":
+        username = Students.query.filter_by(username=form["username"]).first()
+    elif form['userType'] == 'teacher':
+        username = Teachers.query.filter_by(username=form["userName"]).first()
     
-    return jsonify("user successfully registered")
+    return jsonify(username.serialize())
+    # return jsonify("user successfully registered")
 
 
 @app.route('/loginUser',methods=['POST', 'GET'])
