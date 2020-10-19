@@ -228,7 +228,6 @@ def handle_deleteAssignedAssignment():
     form = request.get_json()
     studentIds = []
     assignedAssignmentsTotal = None
-
     students = Students.query.all()
 
     # assignedAssignmentsTotal=AssignedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form["schoolTermId"]).count()
@@ -237,21 +236,25 @@ def handle_deleteAssignedAssignment():
     for student in students:
         studentIds.append(student.serialize()["id"])
 
+    print(studentIds)
+    print(form)
 
     try:
         # assignedAssignments = AssignedAssignments.query.filter_by(id=form['assignmentId']).first()
         assignedAssignments = AssignedAssignments.query.filter_by(id=form['assignmentId']).delete()
-        subAssignments = SubmitedAssignments.query.all()
-
-
+        # subAssignments = SubmitedAssignments.query.all()
 
         submittedAssignments = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'], assignmentName =form['assignmentName']).delete()
         # db.session.delete(assignedAssignments)
 
         avgGrade = 0
+     
         db.session.commit()
+   
 
         assignedAssignmentsTotal=AssignedAssignments.query.filter_by(subjectId=form['subjectId'],schoolTermId=form["schoolTermId"]).count()
+
+
 
         gradeLetter = None
     
@@ -259,15 +262,16 @@ def handle_deleteAssignedAssignment():
             studentAssignments = SubmitedAssignments.query.filter_by(subjectId=form['subjectId'], studentId=studentId).all()
             studentClassGrades = StudentsClassGrades.query.filter_by(studentId=studentId).first()
         
-            for assignment in studentAssignments:
-                print(assignment.serialize())
-                avgGrade += assignment.serialize()["grade"]
+            if len(studentAssignments) == 0:
+                avgGrade = 0
+            else:
+                for assignment in studentAssignments:
+                    avgGrade += assignment.serialize()["grade"]
                 
-            print(avgGrade)
-            avgGrade = avgGrade / assignedAssignmentsTotal
+                avgGrade = avgGrade / assignedAssignmentsTotal
+
             studentClassGrades.gradeAvg = avgGrade
             
-            print(avgGrade)
 
             def gradeLetter(avgGrade):
                 if avgGrade >=0 and avgGrade < 60:
@@ -278,7 +282,7 @@ def handle_deleteAssignedAssignment():
                     return "C"
                 elif avgGrade >=80 and avgGrade <90:
                     return "B"
-                elif avgGrade >=90 and avgGrade <100:
+                elif avgGrade >=90 and avgGrade <101:
                     return "A"
                 else:
                     return "N/A"
